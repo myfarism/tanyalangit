@@ -6,10 +6,10 @@ import (
 
 	"github.com/myfarism/tanyalangit/config"
 	"github.com/myfarism/tanyalangit/jobs"
-	"github.com/myfarism/tanyalangit/routes"
+	// "github.com/myfarism/tanyalangit/routes"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	// "github.com/gofiber/fiber/v2"
+	// "github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 func main() {

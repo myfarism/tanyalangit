@@ -20,11 +20,11 @@ func main() {
 	log.Println("PORT:", os.Getenv("PORT"))
 	log.Println("DATABASE_URL:", os.Getenv("DATABASE_URL"))
 
-	config.InitDB()
+	// config.InitDB()
 
 	log.Println("DB initialized")
 
-	jobs.StartCleanupJob()
+	// jobs.StartCleanupJob()
 
 	log.Println("Job started")
 }

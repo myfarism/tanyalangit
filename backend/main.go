@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/myfarism/tanyalangit/config"
 	"github.com/myfarism/tanyalangit/jobs"
@@ -13,17 +14,24 @@ import (
 )
 
 func main() {
-	godotenv.Load()
-	config.InitDB()
-	jobs.StartCleanupJob()
+    godotenv.Load()
+    config.InitDB()
+    jobs.StartCleanupJob()
 
-	app := fiber.New()
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000",
-		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
+    app := fiber.New()
+    app.Use(cors.New(cors.Config{
+        AllowOrigins: "*",
+        AllowHeaders: "Origin, Content-Type, Accept",
+        AllowMethods: "GET,POST,OPTIONS",
+    }))
 
-	routes.Setup(app)
+    routes.Setup(app)
 
-	log.Fatal(app.Listen(":8080"))
+    // Railway inject $PORT, fallback ke 8080 buat lokal
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+
+    log.Fatal(app.Listen("0.0.0.0:" + port))
 }

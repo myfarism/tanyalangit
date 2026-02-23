@@ -1,8 +1,0 @@
-.env
-.env.*
-*.md
-.git
-.gitignore
-frontend/
-docs/
-tmp/

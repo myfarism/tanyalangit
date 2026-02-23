@@ -12,26 +12,41 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
-
 func main() {
-    godotenv.Load()
-    config.InitDB()
-    jobs.StartCleanupJob()
+	log.Println("App starting...")
 
-    app := fiber.New()
-    app.Use(cors.New(cors.Config{
-        AllowOrigins: "*",
-        AllowHeaders: "Origin, Content-Type, Accept",
-        AllowMethods: "GET,POST,OPTIONS",
-    }))
+	godotenv.Load()
 
-    routes.Setup(app)
+	log.Println("PORT:", os.Getenv("PORT"))
+	log.Println("DATABASE_URL:", os.Getenv("DATABASE_URL"))
 
-    // Railway inject $PORT, fallback ke 8080 buat lokal
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
+	config.InitDB()
 
-    log.Fatal(app.Listen("0.0.0.0:" + port))
+	log.Println("DB initialized")
+
+	jobs.StartCleanupJob()
+
+	log.Println("Job started")
 }
+// func main() {
+//     godotenv.Load()
+//     config.InitDB()
+//     jobs.StartCleanupJob()
+
+//     app := fiber.New()
+//     app.Use(cors.New(cors.Config{
+//         AllowOrigins: "*",
+//         AllowHeaders: "Origin, Content-Type, Accept",
+//         AllowMethods: "GET,POST,OPTIONS",
+//     }))
+
+//     routes.Setup(app)
+
+//     // Railway inject $PORT, fallback ke 8080 buat lokal
+//     port := os.Getenv("PORT")
+//     if port == "" {
+//         port = "8080"
+//     }
+
+//     log.Fatal(app.Listen("0.0.0.0:" + port))
+// }

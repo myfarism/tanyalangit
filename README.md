@@ -205,4 +205,3 @@ Beberapa ide pengembangan berikutnya:
 
 Dibangun sebagai proyek portofolio oleh [@myfarism](https://github.com/myfarism).  
 Fokus utamanya adalah menunjukkan kombinasi antara geospatial backend, realtime system, dan desain antarmuka yang terasa dekat dengan pengguna lokal.
-```

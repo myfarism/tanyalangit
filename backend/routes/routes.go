@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/myfarism/tanyalangit/config"
 	"github.com/myfarism/tanyalangit/handlers"
 	"github.com/myfarism/tanyalangit/middleware"
 
@@ -11,7 +12,11 @@ import (
 func Setup(app *fiber.App) {
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"status": "ok"})
+		status := fiber.Map{
+			"status": "ok",
+			"db":     config.IsConnected(),
+		}
+		return c.JSON(status)
 	})
 
 	api := app.Group("/api")

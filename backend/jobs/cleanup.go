@@ -10,6 +10,12 @@ import (
 func StartCleanupJob() {
 	go func() {
 		for range time.Tick(5 * time.Minute) {
+			// Skip if DB not connected
+			if !config.IsConnected() {
+				log.Println("[cleanup] Skipping: DB not connected")
+				continue
+			}
+
 			result, err := config.DB.Exec(`
 				DELETE FROM reports WHERE expires_at < NOW()
 			`)

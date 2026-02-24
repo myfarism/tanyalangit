@@ -9,6 +9,11 @@ import (
 )
 
 func Setup(app *fiber.App) {
+	// Health check endpoint
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"status": "ok"})
+	})
+
 	api := app.Group("/api")
 	api.Post("/reports", middleware.RateLimit(), handlers.CreateReport)
 	api.Get("/reports/nearby", handlers.GetNearbyReports)

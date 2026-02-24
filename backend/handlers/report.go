@@ -9,6 +9,10 @@ import (
 )
 
 func CreateReport(c *fiber.Ctx) error {
+	if !config.IsConnected() {
+		return c.Status(503).JSON(fiber.Map{"error": "Database not available"})
+	}
+
 	var req models.CreateReportRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid body"})
@@ -49,6 +53,10 @@ func CreateReport(c *fiber.Ctx) error {
 }
 
 func GetNearbyReports(c *fiber.Ctx) error {
+	if !config.IsConnected() {
+		return c.Status(503).JSON(fiber.Map{"error": "Database not available"})
+	}
+
 	lat := c.QueryFloat("lat", 0)
 	lng := c.QueryFloat("lng", 0)
 	radius := c.QueryFloat("radius", 5)

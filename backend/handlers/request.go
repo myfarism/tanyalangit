@@ -7,6 +7,10 @@ import (
 )
 
 func CreateLocationRequest(c *fiber.Ctx) error {
+	if !config.IsConnected() {
+		return c.Status(503).JSON(fiber.Map{"error": "Database not available"})
+	}
+
 	var req models.CreateRequestPayload
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid body"})
@@ -40,6 +44,10 @@ func CreateLocationRequest(c *fiber.Ctx) error {
 }
 
 func GetNearbyRequests(c *fiber.Ctx) error {
+	if !config.IsConnected() {
+		return c.Status(503).JSON(fiber.Map{"error": "Database not available"})
+	}
+
 	lat := c.QueryFloat("lat", 0)
 	lng := c.QueryFloat("lng", 0)
 	radius := c.QueryFloat("radius", 10)
@@ -69,6 +77,10 @@ func GetNearbyRequests(c *fiber.Ctx) error {
 }
 
 func GetRequestByID(c *fiber.Ctx) error {
+	if !config.IsConnected() {
+		return c.Status(503).JSON(fiber.Map{"error": "Database not available"})
+	}
+
 	id := c.Params("id")
 
 	var req models.LocationRequest

@@ -17,6 +17,7 @@ func InitDB() {
     
     // Fallback ke individual vars kalau lokal
     if dsn == "" {
+        log.Println("[DB] DATABASE_URL not found, trying individual vars")
         dsn = fmt.Sprintf(
             "host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
             os.Getenv("DB_HOST"),
@@ -25,6 +26,8 @@ func InitDB() {
             os.Getenv("DB_PASSWORD"),
             os.Getenv("DB_NAME"),
         )
+    } else {
+        log.Printf("[DB] Using DATABASE_URL (length: %d chars)", len(dsn))
     }
 
     // Retry logic untuk Railway
@@ -33,7 +36,17 @@ func InitDB() {
         db, err := sqlx.Connect("postgres", dsn)
         if err == nil {
             DB = db
-            log.Println("[DB] Connected successfully")
+            // Test connection
+            if pingErr := db.Ping(); pingErr != nil {
+                log.Printf("[DB] Connected but ping failed: %v", pingErr)
+                db.Close()
+                DB = nil
+                if i < maxRetries-1 {
+                    time.Sleep(2 * time.Second)
+                }
+                continue
+            }
+            log.Println("[DB] ✓ Connected successfully")
             return
         }
 
@@ -43,7 +56,7 @@ func InitDB() {
         }
     }
 
-    log.Println("[DB] WARNING: Failed to connect after retries, continuing without DB")
+    log.Println("[DB] ⚠ WARNING: Failed to connect after retries, continuing without DB")
 }
 
 func IsConnected() bool {

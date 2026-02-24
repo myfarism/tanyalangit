@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"os"
+
 	"github.com/myfarism/tanyalangit/config"
 	"github.com/myfarism/tanyalangit/handlers"
 	"github.com/myfarism/tanyalangit/middleware"
@@ -17,6 +19,22 @@ func Setup(app *fiber.App) {
 			"db":     config.IsConnected(),
 		}
 		return c.JSON(status)
+	})
+
+	// Debug endpoint untuk cek env vars (tanpa expose password)
+	app.Get("/debug/env", func(c *fiber.Ctx) error {
+		hasDbUrl := os.Getenv("DATABASE_URL") != ""
+		dbUrlLen := 0
+		if hasDbUrl {
+			dbUrlLen = len(os.Getenv("DATABASE_URL"))
+		}
+
+		return c.JSON(fiber.Map{
+			"DATABASE_URL_exists": hasDbUrl,
+			"DATABASE_URL_length": dbUrlLen,
+			"PORT":                os.Getenv("PORT"),
+			"DB_connected":        config.IsConnected(),
+		})
 	})
 
 	api := app.Group("/api")

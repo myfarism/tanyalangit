@@ -1,135 +1,226 @@
-```md
 # 🌧️ TanyaLangit
 
-Cuaca hyperlocal yang diisi manusia, bukan hanya satelit.  
-Saat akan berangkat ke suatu daerah dan ragu: **“di sana sekarang hujan deras atau tidak?”**, TanyaLangit mencoba menjawab pertanyaan tersebut melalui laporan langsung dari orang yang berada di lokasi.
+**Cuaca hyperlocal yang diisi manusia, bukan hanya satelit.**
 
-Website: [text](https://tanyalangit.vercel.app/)
+Saat hendak bepergian ke suatu daerah dan muncul pertanyaan sederhana:
 
-![Demo](./docs/demo.gif)
+> **“Di sana sekarang hujan atau tidak?”**
 
----
+TanyaLangit mencoba menjawabnya melalui laporan langsung dari orang yang benar-benar berada di lokasi tersebut.
 
-## Latar belakang
-
-Sebagian besar aplikasi cuaca hanya memberikan informasi seperti *“40% chance of rain”* yang sering kali tidak cukup membantu dalam pengambilan keputusan praktis.  
-Kebutuhan yang lebih nyata adalah jawaban sederhana: **“di sana sekarang hujan atau tidak?”**
-
-TanyaLangit hadir sebagai eksperimen untuk:
-- Mengumpulkan laporan cuaca langsung dari manusia yang berada di lokasi tersebut
-- Menggunakan pengelompokan laporan (clustering) untuk memberikan indikasi *confidence* berdasarkan jumlah kontributor
-- Menyediakan fitur *“Minta Info”* yang dapat dibagikan melalui tautan (misalnya ke grup WhatsApp)
+🔗 Website: [https://tanyalangit.vercel.app/](https://tanyalangit.vercel.app/)
 
 ---
 
-## Fitur utama
+# 📌 Latar Belakang
 
-- 🔴 **Laporan cuaca real‑time**
-  - Klik pada peta, pilih kondisi: cerah, mendung, gerimis, hujan lebat, banjir
-  - Setiap laporan aktif selama 30 menit kemudian otomatis kedaluwarsa
+Sebagian besar aplikasi cuaca menampilkan informasi seperti *“40% chance of rain”*.
+Namun dalam banyak situasi, yang dibutuhkan adalah jawaban yang lebih praktis dan langsung:
 
-- 🧠 **Confidence berdasarkan jumlah laporan**
-  - Laporan dalam area yang berdekatan dikelompokkan (cluster)
-  - Ikon cuaca membesar dan menampilkan badge jumlah laporan
-  - Laporan dari *on‑site reporter* (pengguna yang mengonfirmasi sedang berada di lokasi) diberi penanda visual khusus
+> **Apakah di sana sedang hujan sekarang?**
 
-- ❓ **“Minta Info” dengan tautan yang dapat dibagikan**
-  - Klik di peta → tab **Minta Info**
-  - Isi nama area dan pesan opsional (misalnya: *“Mau ke sini, di sana hujan tidak?”*)
-  - Aplikasi menghasilkan tautan yang dapat dibagikan ke WhatsApp atau media sosial
-  - Pengguna yang membuka tautan tersebut:
-    - Langsung diarahkan ke area terkait di peta
-    - Melihat marker `❓` di lokasi yang dimaksud
-    - Dapat mengirim laporan cuaca untuk menjawab permintaan tersebut
+TanyaLangit adalah eksperimen untuk membangun sistem cuaca berbasis kontribusi manusia (crowdsourced), dengan fokus pada:
 
-- 🌧️ **Efek hujan visual berbasis laporan**
-  - Jika terdapat cukup banyak laporan `heavy_rain` atau `flood` di sekitar, muncul efek hujan halus di atas peta
-  - Menjadi umpan balik visual bahwa area tersebut sedang benar‑benar “basah”
-
-- 🌗 **Tema warm + lokal dengan dark mode**
-  - Palet warna earth tone dengan tipografi Plus Jakarta Sans
-  - Tema terang dan gelap yang konsisten
-  - Menggunakan tile CartoDB (Positron / Dark Matter) agar peta tetap bersih dan mudah dibaca
-
-- 🛡️ **Siap produksi (bukan sekadar demo)**
-  - Rate limiting per IP untuk endpoint penting
-  - Validasi input koordinat (dibatasi ke wilayah Indonesia)
-  - Background job di backend untuk menghapus data kedaluwarsa (reports & requests)
-  - WebSocket dengan mekanisme exponential backoff saat reconnect
+* Laporan real-time dari pengguna di lokasi
+* Indikator *confidence* berbasis jumlah laporan
+* Distribusi permintaan informasi melalui tautan yang mudah dibagikan (misalnya ke WhatsApp)
 
 ---
 
-## Tech stack
+# ✨ Fitur Utama
 
-**Frontend**
-- Next.js 15 (App Router) + TypeScript
-- React Leaflet + CartoDB tiles
-- Tailwind (seperlunya) + styling kustom
-- `next-themes` untuk pengelolaan tema
-- Framer Motion untuk animasi UI
+## 1️⃣ Laporan Cuaca Real-Time
 
-**Backend**
-- Go + Fiber
-- WebSocket broadcast ke klien dalam radius tertentu
-- PostgreSQL + PostGIS untuk geospatial query
-- Background job untuk pembersihan data (expired cleanup)
-- Rate limiting sederhana berbasis IP (`golang.org/x/time/rate`)
+* Klik pada peta
+* Pilih kondisi:
 
-**Infra**
-- Frontend: Vercel  
-- Backend: Railway (Go Fiber + PostgreSQL + PostGIS)
+  * ☀️ Cerah
+  * ☁️ Mendung
+  * 🌦️ Gerimis
+  * 🌧️ Hujan lebat
+  * 🌊 Banjir
+* Setiap laporan aktif selama **30 menit**
+* Laporan otomatis kedaluwarsa setelah melewati TTL
 
 ---
 
-## Arsitektur singkat
+## 2️⃣ Confidence Berbasis Jumlah Laporan
 
-Frontend berkomunikasi dengan backend melalui endpoint:
+* Laporan yang berdekatan akan **dikelompokkan (cluster)**
+* Ikon membesar sesuai jumlah laporan
+* Badge menampilkan total kontributor
+* *On-site reporter* (pengguna yang mengonfirmasi berada di lokasi) diberi penanda visual khusus
 
-- Laporan cuaca:
-  - `GET /api/reports/nearby?lat=&lng=&radius=`
-  - `POST /api/reports`
-- Permintaan informasi lokasi:
-  - `GET /api/requests/nearby?lat=&lng=&radius=`
-  - `GET /api/requests/:id`
-  - `POST /api/requests`
-
-Alur *share link*:
-
-1. Pengguna membuat request melalui `POST /api/requests`
-2. Backend mengembalikan `id` request
-3. Frontend membentuk tautan `/?request={id}`
-4. Tautan tersebut dibagikan (misalnya via WhatsApp)
-
-WebSocket:
-
-- Klien terkoneksi ke `ws://.../ws?lat=&lng=`
-- Backend hanya melakukan broadcast laporan baru ke klien yang berada dalam radius tertentu dari lokasi laporan tersebut
-
-Data laporan disimpan dengan kolom `expires_at` dan dibersihkan secara berkala oleh background job. Frontend juga mem-filter laporan dan request yang kedaluwarsa agar UI tetap ringan dan relevan.
+Tujuannya: meningkatkan kepercayaan tanpa sistem akun yang kompleks.
 
 ---
 
-## Menjalankan secara lokal
+## 3️⃣ Fitur “Minta Info” (Shareable Link)
 
-### 1. Backend (Go + Fiber)
+Alur penggunaan:
+
+1. Klik lokasi pada peta
+2. Pilih tab **Minta Info**
+3. Isi:
+
+   * Nama area
+   * Pesan opsional (misalnya: *“Mau ke sini, di sana hujan tidak?”*)
+4. Sistem menghasilkan tautan berbentuk:
+
+   ```
+   /?request={id}
+   ```
+5. Tautan dapat dibagikan ke WhatsApp atau media sosial
+
+Pengguna yang membuka tautan akan:
+
+* Langsung diarahkan ke lokasi terkait
+* Melihat marker `❓`
+* Dapat mengirim laporan untuk menjawab permintaan tersebut
+
+Fitur ini dirancang sebagai mekanisme distribusi organik.
+
+---
+
+## 4️⃣ Efek Visual Berbasis Laporan
+
+Jika terdapat cukup banyak laporan:
+
+* `heavy_rain`
+* `flood`
+
+di suatu area, maka muncul efek hujan ringan di atas peta sebagai umpan balik visual bahwa area tersebut sedang “basah”.
+
+---
+
+## 5️⃣ UI Lokal dengan Dark Mode
+
+* Palet warna earth tone
+* Tipografi Plus Jakarta Sans
+* Mode terang & gelap yang konsisten
+* Tile peta CartoDB:
+
+  * Positron (light)
+  * Dark Matter (dark)
+
+Fokus desain: hangat, lokal, tidak terasa seperti dashboard meteorologi formal.
+
+---
+
+## 6️⃣ Siap Produksi
+
+Bukan sekadar demo UI.
+
+* Rate limiting per IP untuk endpoint sensitif
+* Validasi koordinat (dibatasi ke wilayah Indonesia)
+* Background job untuk membersihkan data kedaluwarsa
+* WebSocket dengan exponential backoff saat reconnect
+
+---
+
+# 🏗️ Arsitektur Sistem
+
+## Gambaran Umum
+
+Frontend dan backend berkomunikasi melalui REST API + WebSocket.
+
+### Endpoint Laporan Cuaca
+
+```
+GET  /api/reports/nearby?lat=&lng=&radius=
+POST /api/reports
+```
+
+### Endpoint Permintaan Informasi
+
+```
+GET  /api/requests/nearby?lat=&lng=&radius=
+GET  /api/requests/:id
+POST /api/requests
+```
+
+---
+
+## 🔁 Alur Share Link
+
+1. Frontend → `POST /api/requests`
+2. Backend → mengembalikan `id`
+3. Frontend → membentuk URL `/?request={id}`
+4. URL dibagikan ke pengguna lain
+
+---
+
+## 🔌 WebSocket
+
+Koneksi:
+
+```
+ws://.../ws?lat=&lng=
+```
+
+Karakteristik:
+
+* Broadcast selektif: hanya klien dalam radius tertentu yang menerima laporan baru
+* Reconnect dengan exponential backoff
+* Mengurangi beban server saat gangguan jaringan
+
+---
+
+## 🗄️ Model Data
+
+* Lokasi disimpan sebagai `GEOGRAPHY(Point, 4326)`
+* Query radius menggunakan `ST_DWithin`
+* Indeks GIST untuk menjaga performa
+* Kolom `expires_at` untuk TTL
+* Background job melakukan cleanup berkala
+
+Frontend juga memfilter data kedaluwarsa untuk menjaga UI tetap ringan.
+
+---
+
+# 🧰 Tech Stack
+
+## Frontend
+
+* Next.js 15 (App Router) + TypeScript
+* React Leaflet
+* Tailwind CSS (minimal)
+* next-themes
+* Framer Motion
+
+## Backend
+
+* Go + Fiber
+* PostgreSQL + PostGIS
+* WebSocket radius-based broadcast
+* Background cleanup worker
+* Rate limiting (`golang.org/x/time/rate`)
+
+## Infrastruktur
+
+* Frontend: Vercel
+* Backend: Railway
+* Database: PostgreSQL + PostGIS
+
+---
+
+# 🚀 Menjalankan Secara Lokal
+
+## 1️⃣ Backend
 
 ```bash
 cd backend
 go mod tidy
 ```
 
-Setup database PostgreSQL:
-
-1. Buat database, misalnya `tanyalangit`
-2. Aktifkan PostGIS:
+Buat database:
 
 ```sql
+CREATE DATABASE tanyalangit;
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
 
-3. Jalankan skrip SQL untuk membuat tabel `reports` dan `location_requests`.
-
-Isi file `.env`:
+Isi `.env`:
 
 ```env
 DB_HOST=localhost
@@ -139,15 +230,21 @@ DB_PASSWORD=yourpassword
 DB_NAME=tanyalangit
 ```
 
-Jalankan server:
+Jalankan:
 
 ```bash
 go run main.go
 ```
 
-Service akan berjalan pada `http://localhost:8080`.
+Backend berjalan di:
 
-### 2. Frontend (Next.js)
+```
+http://localhost:8080
+```
+
+---
+
+## 2️⃣ Frontend
 
 ```bash
 cd frontend
@@ -161,49 +258,30 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 NEXT_PUBLIC_WS_URL=ws://localhost:8080
 ```
 
-Jalankan dev server:
+Jalankan:
 
 ```bash
 npm run dev
 ```
 
-Buka `http://localhost:3000` di browser.
+Buka:
+
+```
+http://localhost:3000
+```
 
 ---
 
-## Poin teknis yang menarik untuk dibahas
+# 🗺️ Roadmap
 
-Beberapa hal yang secara khusus menarik untuk didiskusikan di interview teknis:
-
-1. **Geospatial query dengan PostGIS**  
-   Penggunaan `GEOGRAPHY(Point, 4326)` dan `ST_DWithin` untuk query radius, serta pemanfaatan indeks GIST agar performa tetap terjaga saat data bertambah.
-
-2. **Model kepercayaan (trust model) untuk data crowdsourced**  
-   - Pengelompokan laporan per area dan kondisi cuaca
-   - Penandaan *on‑site reporter*  
-   - TTL 30 menit untuk menjaga relevansi data
-
-3. **Realtime dengan WebSocket**  
-   - Selektif: hanya klien dalam radius tertentu yang menerima laporan baru  
-   - Exponential backoff untuk reconnect agar tidak membebani server saat koneksi bermasalah
-
-4. **Fitur “Minta Info” sebagai mekanisme distribusi**  
-   - Tautan shareable yang dirancang untuk alur penggunaan WhatsApp  
-   - Pengalaman pengguna yang masuk melalui tautan langsung diarahkan ke konteks lokasi yang tepat
+* Web Push Notification berbasis radius
+* Sistem reputasi ringan tanpa akun penuh
+* Mode komuter (menyimpan rute harian dan melihat cuaca sepanjang rute)
+* Eksperimen deteksi anomali laporan
 
 ---
 
-## Roadmap
+# 👤 Credits
 
-Beberapa ide pengembangan berikutnya:
-
-- Web Push Notification untuk pengguna yang mengizinkan notifikasi jika ada request baru di radius tertentu
-- Sistem reputasi ringan untuk reporter tanpa perlu akun penuh
-- Mode “komuter”: menyimpan rute harian dan menampilkan cuaca di sepanjang rute tersebut
-
----
-
-## Credits
-
-Dibangun sebagai proyek portofolio oleh [@myfarism](https://github.com/myfarism).  
-Fokus utamanya adalah menunjukkan kombinasi antara geospatial backend, realtime system, dan desain antarmuka yang terasa dekat dengan pengguna lokal.
+Dibangun sebagai proyek portofolio oleh:
+[https://github.com/myfarism](https://github.com/myfarism)
